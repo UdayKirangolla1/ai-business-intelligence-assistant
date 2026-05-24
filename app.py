@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 
 from src.document_loader import load_document
@@ -15,23 +14,9 @@ st.set_page_config(
 )
 
 st.title("AI Business Intelligence Assistant")
-st.write("Upload a business document and ask questions about it using RAG + Claude AI.")
+st.write("Upload a business document and ask questions about it using RAG.")
 
-# ── API Key Input ──────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.header("Configuration")
-    api_key = st.text_input(
-        "Anthropic API Key",
-        type="password",
-        placeholder="sk-ant-..."
-    )
-    if api_key:
-        os.environ["ANTHROPIC_API_KEY"] = api_key
-        st.success("API key set!")
-    else:
-        st.warning("Enter your Anthropic API key to enable AI answers.")
-
-# ── File Upload ────────────────────────────────────────────────────────────────
+# File Upload
 uploaded_file = st.file_uploader(
     "Upload PDF, TXT, or DOCX file",
     type=["pdf", "txt", "docx"]
@@ -51,17 +36,14 @@ if uploaded_file is not None:
     st.success(f"Document processed! {len(chunks)} chunks created.")
 
     if question:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            st.error("Please enter your Anthropic API key in the sidebar first.")
-        else:
-            with st.spinner("Generating answer..."):
-                answer, relevant_docs = generate_answer(question, retriever)
+        with st.spinner("Searching document..."):
+            answer, relevant_docs = generate_answer(question, retriever)
 
-            st.subheader("Answer")
-            st.write(answer)
+        st.subheader("Answer")
+        st.write(answer)
 
-            with st.expander("Retrieved Source Chunks"):
-                for i, doc in enumerate(relevant_docs, start=1):
-                    st.markdown(f"**Source {i}**")
-                    st.write(doc.page_content)
-                    st.divider()
+        with st.expander("Retrieved Source Chunks"):
+            for i, doc in enumerate(relevant_docs, start=1):
+                st.markdown(f"**Source {i}**")
+                st.write(doc.page_content)
+                st.divider()
